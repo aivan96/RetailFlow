@@ -10,16 +10,28 @@ try:
         try:
             table = 'carts'
             carts = []
-            columns = ['title', 'price', 'quantity', 'total', 'discount_percentage',
-                       'discounted_total', 'customer_id']
+            columns = ['cart_id', 'user_id', 'total', 'discounted_total', 'total_products', 'total_quantity']
             for elem in data['carts']:
-                e = elem['products'][1]
-                cart = (e.get('title'), e.get('price'), e.get('quantity'), e.get('total'), e.get('discountPercentage'),
-                        e.get('discountedTotal'), elem.get('id'))
+                cart = (elem.get('id'), elem.get('userId'), elem.get('total'), elem.get('discountedTotal'),
+                        elem.get('totalProducts'), elem.get('totalQuantity'))
                 carts.append(cart)
-
             pg_insert_table(table, columns, carts, get_pg_connection())
-            print('Data inserted successfully')
+            print(f'Data {table} inserted successfully')
+        except Exception as e:
+            print(f'Error inserting data: {e}')
+
+        try:
+            table = 'cart_items'
+            items = []
+            columns = ['cart_id', 'product_id', 'title', 'price', 'quantity', 'total', 'discount_percentage',
+                       'discounted_total']
+            for elem in data['carts']:
+                for e in elem['products']:
+                    item = (elem.get('id'), e.get('id'), e.get('title'), e.get('price'), e.get('quantity'),
+                            e.get('total'), e.get('discountPercentage'), e.get('discountedTotal'))
+                    items.append(item)
+            pg_insert_table(table, columns, items, get_pg_connection())
+            print(f'Data {table} inserted successfully')
         except Exception as e:
             print(f'Error inserting data: {e}')
     else:
