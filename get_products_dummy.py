@@ -10,14 +10,14 @@ try:
         try:
             table = 'products'
             products = []
-            columns = ['title', 'brand', 'category', 'weight', 'return_policy', 'min_order_quantity']
+            columns = ['product_id', 'title', 'brand', 'category', 'weight', 'return_policy', 'min_order_quantity']
             for elem in data['products']:
-                product = (elem.get('title'), elem.get('brand'), elem.get('category'),
+                product = (elem.get('id'), elem.get('title'), elem.get('brand'), elem.get('category'),
                            elem.get('weight'), elem.get('returnPolicy'), elem.get('minimumOrderQuantity'))
                 products.append(product)
 
             pg_insert_table(table, columns, products, get_pg_connection())
-            print('Data inserted successfully')
+            print(f'Data {table} inserted successfully')
         except Exception as e:
             print(f'Error inserting data: {e}')
     else:
