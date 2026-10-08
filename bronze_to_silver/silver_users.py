@@ -28,26 +28,25 @@ try:
 
     silver_df = df[['user_id', 'first_name', 'last_name', 'email',
                     'phone', 'username', 'birth_date', 'created_at']].copy()
-    batch_id = int(datetime.now().strftime('%Y%m%d%H%M%S'))
+    batch_id = int(dt.strftime('%Y%m%d%H%M%S'))
     silver_df['converted_at'] = dt
     silver_df['batch_id'] = batch_id
     print('Data successfully converted')
 
+    try:
+        object_name = f'silver/{source}/{dt.year}/{dt.month}/{dt.day}/{source}.parquet'
+        parquet_data = silver_df.to_parquet(engine='pyarrow')
+
+        client.put_object(
+            bucket_name,
+            object_name,
+            io.BytesIO(parquet_data),
+            length=len(parquet_data),
+            content_type='application/parquet',
+        )
+        print(f'Silver data successfully uploaded')
+    except S3Error as e:
+        print(f'Silver error: {e}')
+
 except S3Error as e:
     print(f'Bronze error: {e}')
-
-try:
-    object_name = f'silver/{source}/{dt.year}/{dt.month}/{dt.day}/{source}.json'
-    json_data = silver_df.to_json(orient='records', force_ascii=False)
-    json_bytes = json_data.encode('utf-8')
-
-    client.put_object(
-        bucket_name,
-        object_name,
-        io.BytesIO(json_bytes),
-        length=len(json_bytes),
-        content_type='application/json'
-    )
-    print(f'Silver data successfully uploaded')
-except S3Error as e:
-    print(f'Silver error: {e}')
