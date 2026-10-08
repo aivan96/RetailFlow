@@ -38,4 +38,4 @@ try:
         print(f'Response failed. Status code: {response.status_code}')
         print(f'Response text: {response.text}')
 except Exception as e:
-    print(f'Ошибка: {e}')
+    print(f'Error: {e}')
