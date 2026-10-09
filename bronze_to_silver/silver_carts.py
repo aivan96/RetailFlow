@@ -31,21 +31,20 @@ try:
     silver_df['converted_at'] = dt
     silver_df['batch_id'] = batch_id
     print('Data successfully converted')
-
-    try:
-        object_name = f'silver/{source}/{dt.year}/{dt.month}/{dt.day}/{source}.parquet'
-        parquet_data = silver_df.to_parquet(engine='pyarrow')
-
-        client.put_object(
-            bucket_name,
-            object_name,
-            io.BytesIO(parquet_data),
-            length=len(parquet_data),
-            content_type='application/parquet',
-        )
-        print(f'Silver data successfully uploaded')
-    except S3Error as e:
-        print(f'Silver error: {e}')
-
 except S3Error as e:
-    print(f'Bronze error: {e}')
+    raise RuntimeError('Bronze error') from e
+
+try:
+    object_name = f'silver/{source}/{dt.year}/{dt.month}/{dt.day}/{source}.parquet'
+    parquet_data = silver_df.to_parquet(engine='pyarrow')
+
+    client.put_object(
+        bucket_name,
+        object_name,
+        io.BytesIO(parquet_data),
+        length=len(parquet_data),
+        content_type='application/parquet',
+    )
+    print(f'Silver data successfully uploaded')
+except S3Error as e:
+    raise RuntimeError('Silver error') from e

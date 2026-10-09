@@ -13,29 +13,32 @@ client = Minio(conf_minio['endpoint'],
                region=conf_minio['region'])
 
 bucket_name = 'retailflow'
+source = 'users'
+json_bytes = None
+
 try:
     source = 'users'
     query = f'SELECT * FROM {source}'
     df = pd.read_sql_query(query, get_pg_connection())
     json_data = df.to_json(orient='records', force_ascii=False)
     json_bytes = json_data.encode('utf-8')
-
-    try:
-        if not client.bucket_exists(bucket_name):
-            client.make_bucket(bucket_name)
-            print(f'Bucket {bucket_name} created successfully.')
-        dt = datetime.now()
-        object_name = f"bronze/{source}/{dt.year}/{dt.month}/{dt.day}/{source}.json"
-
-        client.put_object(
-            bucket_name,
-            object_name,
-            io.BytesIO(json_bytes),
-            length=len(json_bytes),
-            content_type='application/json'
-        )
-        print(f'Object {object_name} uploaded successfully.')
-    except S3Error as e:
-        print(f'Error while connecting to Minio: {e}')
 except Exception as e:
-    print(f'Error with PostgresSQL: {e}')
+    raise RuntimeError('Error with PostgresSQL') from e
+
+try:
+    if not client.bucket_exists(bucket_name):
+        client.make_bucket(bucket_name)
+        print(f'Bucket {bucket_name} created successfully.')
+    dt = datetime.now()
+    object_name = f"bronze/{source}/{dt.year}/{dt.month}/{dt.day}/{source}.json"
+
+    client.put_object(
+        bucket_name,
+        object_name,
+        io.BytesIO(json_bytes),
+        length=len(json_bytes),
+        content_type='application/json'
+    )
+    print(f'Object {object_name} uploaded successfully.')
+except S3Error as e:
+    raise RuntimeError('Error while connecting to Minio') from e
