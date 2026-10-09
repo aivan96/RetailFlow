@@ -63,7 +63,6 @@ def pg_create_table(table, structure, conn):
     sql = f"""
     CREATE TABLE IF NOT EXISTS {table}
     (
-        id SERIAL PRIMARY KEY,
         {columns_expr}
     )
     """
