@@ -8,7 +8,7 @@ try:
     response = requests.get(url, timeout=30)
     response.raise_for_status()
     data = response.json()
-    print('Response success')
+    print('Carts fetched from API successfully')
 except requests.RequestException as e:
     raise RuntimeError('Failed to fetch carts from API') from e
 
