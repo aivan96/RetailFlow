@@ -12,6 +12,7 @@ client = Minio(conf_minio['endpoint'],
                region=conf_minio['region'])
 
 dt = datetime.now()
+df_all = None
 
 try:
     bucket_name = 'retailflow'
@@ -32,22 +33,20 @@ try:
                       on='cart_id')
     df_all['snapshot_date'] = dt.date()
     print('Carts and cart items merged')
-
-    try:
-        object_name = f'gold/fact_cart_items/{dt.strftime("%Y-%m-%d")}.parquet'
-        df_all_bytes = df_all.to_parquet(engine='pyarrow')
-
-        client.put_object(
-            bucket_name,
-            object_name,
-            io.BytesIO(df_all_bytes),
-            length=len(df_all_bytes),
-            content_type='application/parquet'
-        )
-        print('Gold cart items successfully uploaded')
-
-    except S3Error as e:
-        print(f'Gold error: {e}')
-
 except S3Error as e:
-    print(f'Silver error: {e}')
+    raise RuntimeError('Silver error') from e
+
+try:
+    object_name = f'gold/fact_cart_items/{dt.strftime("%Y-%m-%d")}.parquet'
+    df_all_bytes = df_all.to_parquet(engine='pyarrow')
+
+    client.put_object(
+        bucket_name,
+        object_name,
+        io.BytesIO(df_all_bytes),
+        length=len(df_all_bytes),
+        content_type='application/parquet'
+    )
+    print('Gold cart items successfully uploaded')
+except S3Error as e:
+    raise RuntimeError('Gold error') from e
